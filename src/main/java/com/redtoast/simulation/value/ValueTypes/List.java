@@ -27,11 +27,11 @@ public class List implements Collection<Value>, Set<Value> {
     public List(Value<?>[] values){
         vals = new LinkedList<>(Arrays.stream(values).toList());
     }
-    public List(LinkedList<Value> values){
+    public List(java.util.List<Value> values){
         vals = values;
     }
     public List(Object... values){
-        vals = new LinkedList<>(Arrays.stream(Value.of(values).toList().toArray()).toList());
+        vals = Arrays.stream(Value.of(values).toList().toArray()).toList();
     }
     public List(){vals = new LinkedList<>();}
 

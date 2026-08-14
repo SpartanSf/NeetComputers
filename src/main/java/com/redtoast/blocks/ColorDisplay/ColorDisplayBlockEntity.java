@@ -1,13 +1,6 @@
 package com.redtoast.blocks.ColorDisplay;
 
-import com.redtoast.APIS.DrawableGraphicalAPI;
-import com.redtoast.Computer;
-import com.redtoast.Connections.PeripheralProvider;
-import com.redtoast.Connections.PipeRenderSource;
-import com.redtoast.Connections.PipeType;
-import com.redtoast.blocks.Generics.Displays.ConnectionMapping;
-import com.redtoast.blocks.Generics.Displays.ConnectionMappingAccess;
-import com.redtoast.blocks.Generics.Displays.DisplayModelStates;
+import com.redtoast.APIS.graphics.DrawableGraphicalAPI;
 import com.redtoast.blocks.Generics.Displays.MultiblockDisplayEntity;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.graphics.SectoredGraphics;
@@ -16,21 +9,11 @@ import com.redtoast.neet.Networking.ColorDisplayGraphicsPayload;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.value.Value;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
-import org.joml.Vector2i;
-
-import java.util.UUID;
 
 public class ColorDisplayBlockEntity extends MultiblockDisplayEntity {
     public static final int pixelDensity = 2;

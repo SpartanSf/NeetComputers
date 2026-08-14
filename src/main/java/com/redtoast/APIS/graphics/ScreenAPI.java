@@ -1,4 +1,4 @@
-package com.redtoast.APIS;
+package com.redtoast.APIS.graphics;
 
 import com.redtoast.Computer;
 import com.redtoast.graphics.RGBGraphicsArray;
@@ -30,8 +30,7 @@ public class ScreenAPI extends DrawableGraphicalAPI implements API {
 
     @Exposed
     public Table createLayer(int sizex, int sizey){
-        if (sizex==0 || sizey==0) throw new ExposedError("Size cant be zero");
-        Layer layer = new Layer(new RGBGraphicsArray(sizex, sizey), computer.getRuntime());
-        return APILoader.TableizeAPI(layer, computer.getRuntime());
+        if (sizex<=0 || sizey<=0) throw new ExposedError("Size cant be zero or less");
+        return APILoader.TableizeAPI(new GraphicalAPI(sizex, sizey, computer.getRuntime()), computer.getRuntime());
     }
 }

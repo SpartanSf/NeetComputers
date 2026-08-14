@@ -2,6 +2,7 @@ package com.redtoast.neet;
 
 import com.mojang.serialization.Codec;
 import com.redtoast.APIS.Cryptography.CryptoAPI;
+import com.redtoast.APIS.graphics.ScreenAPI;
 import com.redtoast.Computer;
 import com.redtoast.Connections.Connections;
 import com.redtoast.Connections.PipeType;

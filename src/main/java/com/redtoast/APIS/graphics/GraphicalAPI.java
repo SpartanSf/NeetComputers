@@ -141,19 +141,22 @@ public class GraphicalAPI implements Exposable {
     @Exposed
     public void writeData(int x, int y, byte[] buffer, int width) {
         if (buffer.length%4!=0) throw new ExposedError("Length of buffer must by dividable by 4");
-        if (buffer.length%width!=0) throw new ExposedError("Length of buffer must by dividable by width");
+        if ((buffer.length / 4)%width!=0) throw new ExposedError("Length of buffer must by dividable by width");
         int height = buffer.length / width / 4;
         if (x < 0) throw new RangeArgumentError(0, 0, width-1, x);
         if (y < 0) throw new RangeArgumentError(1, 0, height-1, y);
         if (y + height > this.height || x + width > this.width) throw new ExposedError("Draw call extends past valid bounds");
         /*read existing data and apply opacity*/
         int[] scan = readSector(x, y, x + width - 1, y + height - 1);
-        int[] mapped = IntStream.range(0, buffer.length).map(index -> {
+        int[] mapped = IntStream.range(0, buffer.length / 4).map(index -> {
             int byteIndex = index * 4;
-            int alpha = buffer[byteIndex + 3];
-            if (alpha == 0xFF) return buffer[byteIndex++] << 16 | buffer[byteIndex++] << 8 | buffer[byteIndex];
+            int r = buffer[byteIndex] & 0xFF;
+            int g = buffer[byteIndex + 1] & 0xFF;
+            int b = buffer[byteIndex + 2] & 0xFF;
+            int alpha = buffer[byteIndex + 3] & 0xFF;
+            if (alpha == 0xFF) return r << 16 | g << 8 | b;
             if (alpha == 0) return scan[index];
-            return blend(scan[index], buffer[byteIndex++] << 24 | buffer[byteIndex++] << 16 | buffer[byteIndex] << 8 | alpha);
+            return blend(scan[index], r << 24 | g << 16 | b << 8 | alpha);
         }).toArray();
         /*draw to internal buffer*/
         for (int i = 0; i < height; i++) {

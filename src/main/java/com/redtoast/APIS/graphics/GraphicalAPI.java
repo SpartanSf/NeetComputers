@@ -9,11 +9,15 @@ import com.redtoast.simulation.base.Exposable;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.parameterErrors.RangeArgumentError;
 import com.redtoast.simulation.value.Value;
+import com.redtoast.simulation.value.ValueTypes.Bytes;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
 import com.redtoast.simulation.value.ValueTypes.Tuple;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Arrays;
+import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
 public class GraphicalAPI implements Exposable {
@@ -116,7 +120,7 @@ public class GraphicalAPI implements Exposable {
     }
 
     @Exposed
-    public List readData(int x1, int y1, int x2, int y2) {
+    public Bytes readData(int x1, int y1, int x2, int y2) {
         /* clean params*/
         if (x1 > x2) throw new ExposedError("x2 must be larger then x1");
         if (y1 > y2) throw new ExposedError("y2 must be larger then y1");
@@ -125,24 +129,31 @@ public class GraphicalAPI implements Exposable {
         if (x2 >= width) throw new RangeArgumentError(2, 0, width-1, x2);
         if (y2 >= height) throw new RangeArgumentError(3, 0, height-1, y2);
         /*get area as a buffer*/
-        return new List(Arrays.stream(readSector(x1, y1, x2, y2)).mapToObj((RGB) -> (Value) Value.of(RGB<<8|0xFF)).toList());
+        byte[] data = ArrayUtils.toPrimitive(Arrays.stream(readSector(x1, y1, x2, y2)).mapMulti((value, ic) -> {
+            for (int i = 16; i >= 0; i -= 8) {
+                ic.accept(value >> i & 0xFF);
+            }
+            ic.accept(0xFF);
+        }).mapToObj(I -> (byte) I).toArray(Byte[]::new));
+        return new Bytes(data);
     }
 
     @Exposed
-    public void writeData(int x, int y, Integer[] buffer, int width) {
+    public void writeData(int x, int y, byte[] buffer, int width) {
+        if (buffer.length%4!=0) throw new ExposedError("Length of buffer must by dividable by 4");
         if (buffer.length%width!=0) throw new ExposedError("Length of buffer must by dividable by width");
-        int height = buffer.length / width;
+        int height = buffer.length / width / 4;
         if (x < 0) throw new RangeArgumentError(0, 0, width-1, x);
         if (y < 0) throw new RangeArgumentError(1, 0, height-1, y);
         if (y + height > this.height || x + width > this.width) throw new ExposedError("Draw call extends past valid bounds");
         /*read existing data and apply opacity*/
         int[] scan = readSector(x, y, x + width - 1, y + height - 1);
-        Integer[] finalBuffer = buffer;
         int[] mapped = IntStream.range(0, buffer.length).map(index -> {
-            int alpha = finalBuffer[index] & 0xFF;
-            if (alpha == 0xFF) return finalBuffer[index] >> 8;
+            int byteIndex = index * 4;
+            int alpha = buffer[byteIndex + 3];
+            if (alpha == 0xFF) return buffer[byteIndex++] << 16 | buffer[byteIndex++] << 8 | buffer[byteIndex];
             if (alpha == 0) return scan[index];
-            return blend(scan[index], finalBuffer[index]);
+            return blend(scan[index], buffer[byteIndex++] << 24 | buffer[byteIndex++] << 16 | buffer[byteIndex] << 8 | alpha);
         }).toArray();
         /*draw to internal buffer*/
         for (int i = 0; i < height; i++) {
